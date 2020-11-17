@@ -1,4 +1,5 @@
-FROM golang:latest
+ARG GO_VERSION=latest
+FROM golang:${GO_VERSION}
 
 RUN uname -a
 
@@ -14,6 +15,7 @@ WORKDIR /app
 # Start as root
 USER root
 
+
 ###########################################################################
 # Golang non-root user:
 ###########################################################################
@@ -28,6 +30,7 @@ RUN groupadd -g ${PGID} gonlang && \
     useradd -u ${PUID} -g gonlang -m gonlang && \
     usermod -p "*" gonlang -s /bin/bash
 
+
 ###########################################################################
 # Set Timezone
 ###########################################################################
@@ -37,10 +40,12 @@ ENV TZ ${TZ}
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
+
 ###########################################################################
 # PHP OCI8:
 ###########################################################################
 
+ARG INSTALL_OCI8=false
 USER root
 
 ENV LD_LIBRARY_PATH="/opt/oracle/instantclient_12_1"
@@ -49,8 +54,9 @@ ENV OCI_LIB_DIR="/opt/oracle/instantclient_12_1"
 ENV OCI_INCLUDE_DIR="/opt/oracle/instantclient_12_1/sdk/include"
 ENV OCI_VERSION=12
 
+RUN if [ ${INSTALL_OCI8} = true ]; then \
   # Install wget
-RUN  apt-get update && apt-get install --no-install-recommends -y wget \
+  apt-get update && apt-get install --no-install-recommends -y wget \
   # Install Oracle Instantclient
   && mkdir /opt/oracle \
       && cd /opt/oracle \
@@ -65,12 +71,16 @@ RUN  apt-get update && apt-get install --no-install-recommends -y wget \
   # Install PHP extensions deps
   && apt-get update \
       && apt-get install --no-install-recommends -y \
-          libaio-dev
+          libaio-dev \
+  ;fi
 
 COPY ./oci8.pc /usr/lib/pkgconfig/oci8.pc
 
 ENV LD_LIBRARY_PATH /usr/lib:/usr/local/lib:/opt/oracle/instantclient_12_1
-RUN go get -u github.com/mattn/go-oci8
+RUN if [ ${INSTALL_OCI8} = true ]; then \
+    go get -u github.com/mattn/go-oci8 \
+  ;fi
+
 
 ###########################################################################
 # ping:
@@ -80,6 +90,7 @@ USER root
 
 RUN apt-get update -yqq && \
     apt-get -y install inetutils-ping
+
 
 ###########################################################################
 # Bash Git Prompt
@@ -92,6 +103,7 @@ COPY git-prompt.sh /tmp/git-prompt
 RUN git clone https://github.com/magicmonty/bash-git-prompt.git /root/.bash-git-prompt --depth=1 && \
     cat /tmp/git-prompt >> /root/.bashrc && \
     rm /tmp/git-prompt
+
 
 ###########################################################################
 # User Aliases
@@ -121,6 +133,7 @@ RUN echo "" >> ~/.bashrc && \
     echo "# Load GOPATH" >> ~/.bashrc && \
 	echo "export GOPATH=/golib" >> ~/.bashrc && \
 	echo "" >> ~/.bashrc
+
 
 ###########################################################################
 # Final touch
