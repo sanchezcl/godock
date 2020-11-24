@@ -14,7 +14,7 @@ services:
   ### golang ################################################
   golang:
     build:
-      context: ./go_container
+      context: ./golang
       args:
         - INSTALL_OCI8=${GOLANG_INSTALL_OCI8}
         - GO_VERSION=${GOLANG_GO_VERSION}
