@@ -40,7 +40,6 @@ ENV TZ ${TZ}
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-
 ###########################################################################
 # PHP OCI8:
 ###########################################################################
@@ -106,6 +105,17 @@ RUN git clone https://github.com/magicmonty/bash-git-prompt.git /root/.bash-git-
 
 
 ###########################################################################
+# GO Air
+###########################################################################
+
+ARG INSTALL_GO_AIR=false
+RUN if [ ${INSTALL_GO_AIR} = true ]; then \
+    cd / && \
+        curl -sSfL https://raw.githubusercontent.com/cosmtrek/air/master/install.sh | sh -s \
+;fi
+COPY ./air.conf /etc/air.conf
+
+###########################################################################
 # User Aliases
 ###########################################################################
 
@@ -145,5 +155,6 @@ USER root
 RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
     rm /var/log/lastlog /var/log/faillog
+
 
 CMD tail -f /dev/stdout
