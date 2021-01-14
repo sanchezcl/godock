@@ -5,6 +5,7 @@ common docker containers to develop apps in go(golang) :construction:
 - Air (Live reload for Go apps)
 - Redis
 - MongoDB
+- MySQL
 - PostgreSQL
 - ...
 
